@@ -1,0 +1,37 @@
+{
+  "name": "soundbank-chunk",
+  "version": "0.0.0",
+  "description": "A group of triggerable sound descriptors to be positioned on a loop-grid and played with soundbank.",
+  "main": "index.js",
+  "dependencies": {
+    "array-union": "~0.1.0",
+    "observ": "~0.2.0",
+    "observ-array": "~1.2.0",
+    "observ-struct": "~5.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmckegg/soundbank-chunk.git"
+  },
+  "keywords": [
+    "soundbank",
+    "ndarray",
+    "grid",
+    "audio",
+    "trigger",
+    "observ",
+    "loop",
+    "waapi",
+    "music"
+  ],
+  "author": "Matt McKegg",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mmckegg/soundbank-chunk/issues"
+  },
+  "homepage": "https://github.com/mmckegg/soundbank-chunk"
+}
