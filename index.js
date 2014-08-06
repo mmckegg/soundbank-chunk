@@ -14,6 +14,7 @@ module.exports = function Chunk(soundbank, descriptor, getUniqueId){
   descriptor.shape = descriptor.shape || [8, 1]
   descriptor.stride = descriptor.stride || [1, descriptor.shape[0]]
 
+  var releases = []
   var currentRoutes = {}
 
   var self = ObservStuct({
@@ -32,7 +33,7 @@ module.exports = function Chunk(soundbank, descriptor, getUniqueId){
   // watch the slots, assign global ids, update soundbank
   var currentSlotValues = []
   var idLookup = {}
-  self.slots(function(array){
+  releases.push(self.slots(function(array){
     var diff = array._diff
     var updateIds = []
     var updateItems = array
@@ -62,13 +63,13 @@ module.exports = function Chunk(soundbank, descriptor, getUniqueId){
 
     oldItems.forEach(function(element){
       var globalId = idLookup[element.id]
-      if (globalId && !~updateIds.indexOf(globalId)){
+      if (globalId != null && !~updateIds.indexOf(globalId)){
         soundbank.remove(globalId)
       }
     })
 
     currentSlotValues = array
-  })
+  }))
 
   descriptor.slots.forEach(function(d){
     self.slots.push(Observ(d))
@@ -109,6 +110,19 @@ module.exports = function Chunk(soundbank, descriptor, getUniqueId){
     }
   }
 
+  self.destroy = function(){
+    releases.forEach(invoke)
+    releases = []
+    currentSlotValues.forEach(function(element){
+      var globalId = idLookup[element.id]
+      if (globalId != null){
+        soundbank.remove(globalId)
+      }
+    })
+    currentSlotValues = []
+    idLookup = {}
+  }
+
   refreshGrid()
   return self
 
@@ -134,4 +148,8 @@ function obtain(object){
   } else {
     return null
   }
+}
+
+function invoke(func){
+  return func()
 }

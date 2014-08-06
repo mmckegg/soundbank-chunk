@@ -59,6 +59,9 @@ test(function(t){
   drums.routes.put('post', 'master')
   t.same(soundbank.getDescriptor('drums/post').output, 'master')
 
+  drums.destroy()
+  t.same(soundbank.getDescriptors(), [])
+
   t.end()
 })
 
@@ -127,7 +130,7 @@ function FakeSoundbank(){
       descriptors[descriptor.id] = descriptor
     },
     remove: function(id){
-      ;delete descriptors[descriptor.id]
+      ;delete descriptors[id]
     }
   }
 }
