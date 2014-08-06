@@ -9,7 +9,6 @@ test(function(t){
   var drums = Chunk(soundbank, {
     id: 'drums',
     shape: [2, 2], // 2 across, 2 down
-    origin: [0, 0], // put it in the top left corner
     slots: [ // the soundbank slots (IDs relative to this chunk)
       {id: 'kick', sources: [{node: 'sample', url: 'kick.wav'}], output: 'post'},
       {id: 'snare', sources: [{node: 'sample', url: 'snare.wav'}], output: 'post'},
@@ -43,7 +42,6 @@ test(function(t){
        { id: 'hihat', sources: [{node: 'sample', url: 'hihat.wav'}], output: 'post' },
        { id: 'openhat', sources: [{node: 'sample', url: 'openhat.wav'}], output: 'post' },
        { id: 'post', processors: [{node: 'overdrive'}] } ],
-    origin: [ 0, 0 ],
     sounds: [ 'kick', 'snare', 'hihat', 'openhat' ],
     shape: [ 2, 2 ],
     stride: [ 1, 2 ],
@@ -76,7 +74,6 @@ test('with loop-grid', function(t){
   var drums = Chunk(soundbank, {
     id: 'drums',
     shape: [2, 2], // 2 across, 2 down
-    origin: [1, 2], // put it in the top left corner
     slots: [ // the soundbank slots (IDs relative to this chunk)
       {id: 'kick', sources: [{node: 'sample', url: 'kick.wav'}], output: 'post'},
       {id: 'snare', sources: [{node: 'sample', url: 'snare.wav'}], output: 'post'},
@@ -88,7 +85,7 @@ test('with loop-grid', function(t){
     outputs: ['post'], // expose outputs to other chunks
   })
 
-  loopGrid.add(drums)
+  loopGrid.add(drums, 1, 2)
 
   // fake a nextTick
   loopGrid.forceRefresh()

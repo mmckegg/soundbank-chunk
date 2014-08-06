@@ -49,7 +49,6 @@ var chunk = Chunk(soundbank, {
     {id: 'openhat', sources: [{node: 'sample', url: 'openhat.wav'}], output: 'post'},
     {id: 'post', processors: [{node: 'overdrive'}]}
   ],
-  origin: [0,0], // where to place on parent grid, if added
   shape: [2, 2], // 2 across, 2 down
   sounds: ['kick', 'snare', 'hihat', 'openhat'], // what to put on grid
   outputs: ['post'], // expose outputs to other chunks
@@ -62,7 +61,7 @@ var launchpad = require('loop-launchpad')(
   recorder: recorder
 )
 
-launchpad.add(chunk)
+launchpad.add(chunk, 0, 0) // place starting at top-left corner
 ```
 
 ### chunk.getDescriptor()
