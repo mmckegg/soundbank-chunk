@@ -1,27 +1,54 @@
-var getTime = require('monotonic-timestamp-base36')
-
-var Arr = require('observ-array')
-var Stuct = require('observ-struct')
-var Val = require('observ')
+var ArrayGrid = require('array-grid')
+var ObservArray = require('observ-array')
+var ObservStuct = require('observ-struct')
+var ObservVarhash = require('observ-varhash')
+var Observ = require('observ')
 
 var union = require('array-union')
 
 module.exports = function Chunk(soundbank, descriptor, getUniqueId){
-  getUniqueId = getUniqueId || getTime
+  getUniqueId = getUniqueId || function(d){
+    return self.id() + '/' + d.id
+  }
+
+  descriptor.shape = descriptor.shape || [8, 1]
+  descriptor.stride = descriptor.stride || [1, descriptor.shape[0]]
+
+  var currentRoutes = {}
+
+  var self = ObservStuct({
+    id: Observ(descriptor.id),
+    title: Observ(descriptor.title),
+    slots: ObservArray([]),
+    origin: Observ(descriptor.origin || [0, 0]),
+    sounds: ObservArray(descriptor.sounds || []),
+    shape: Observ(descriptor.shape),
+    stride: Observ(descriptor.stride),
+    outputs: ObservArray(descriptor.outputs || []),
+    inputs: ObservArray(descriptor.inputs || []),
+    routes: ObservVarhash({}),
+    grid: Observ() // auto generated
+  })
 
   // watch the slots, assign global ids, update soundbank
-  var slots = Arr()
   var currentSlotValues = []
   var idLookup = {}
-  slots(function(array){
+  self.slots(function(array){
     var diff = array._diff
-    var updatedIds = []
+    var updateIds = []
+    var updateItems = array
+    var oldItems = currentSlotValues
 
-    diff.slice(2).forEach(function(element){
+    if (diff){
+      updateItems = diff.slice(2)
+      oldItems = currentSlotValues.slice(diff[0], diff[0]+diff[1])
+    }
+
+    updateItems.forEach(function(element){
       // map to global and update soundbank
-      var globalId = idLookup[currentId]
+      var globalId = idLookup[element.id]
       if (globalId == null){
-        var globalId = idLookup[currentId] = getUniqueId(descriptor)
+        var globalId = idLookup[element.id] = getUniqueId(element)
       }
       newDescriptor = obtain(element)
       newDescriptor.id = globalId
@@ -34,21 +61,26 @@ module.exports = function Chunk(soundbank, descriptor, getUniqueId){
       updateIds.push(globalId)
     })
 
-    for (var i=diff[0];i<diff[1];i++){
-      var globalId = idLookup[currentSlotValues[i].id]
+    oldItems.forEach(function(element){
+      var globalId = idLookup[element.id]
       if (globalId && !~updateIds.indexOf(globalId)){
         soundbank.remove(globalId)
       }
-    }
+    })
 
     currentSlotValues = array
   })
-  slots.set(descriptor.slots.map(Val))
+
+  descriptor.slots.forEach(function(d){
+    self.slots.push(Observ(d))
+  })
+
+  self.shape(refreshGrid)
+  self.stride(refreshGrid)
+  self.sounds(refreshGrid)
 
   // dynamic routing
-  var routes = Struct()
-  var currentRoutes = {}
-  routes(function(value){
+  self.routes(function(value){
     var keys = union(Object.keys(value), Object.keys(currentRoutes))
     keys.forEach(function(key){
       if (currentRoutes[key] !== value[key]){
@@ -60,23 +92,48 @@ module.exports = function Chunk(soundbank, descriptor, getUniqueId){
         }
       }
     })
-    currentRoutes = routes
+    currentRoutes = value
   })
-  routes.set(descriptor.routes)
+  self.routes.set(descriptor.routes || {})
 
-  return Struct({
-    name: Val(descriptor.name),
-    grid: Val(),
-    slots: slots,
-    sounds: Arr(descriptor.sounds),
-    shape: Val(descriptor.shape),
-    stride: Val(descriptor.stride),
-    outputs: Arr(descriptor.outputs),
-    inputs: Arr(descriptor.inputs),
-    routes: routes
-  })
+  self.getDescriptor = function(){
+    return {
+      id: self.id(),
+      title: self.title(),
+      slots: self.slots(),
+      origin: self.origin(),
+      sounds: self.sounds(),
+      shape: self.shape(),
+      stride: self.stride(),
+      inputs: self.inputs(),
+      outputs: self.outputs(),
+      routes: self.routes()
+    }
+  }
+
+  refreshGrid()
+  return self
+
+
+  ///
+
+  function lookupGlobal(localId){
+    return idLookup[localId]
+  }
+
+  function refreshGrid(){
+    var result = ArrayGrid(self.sounds().map(lookupGlobal), self.shape(), self.stride())
+    self.grid.set(result)
+  }
 }
 
 function obtain(object){
-  return JSON.parse(JSON.stringify())
+  if (object != null){
+    //if (typeof object === 'function'){
+    //  object = object()
+    //}
+    return JSON.parse(JSON.stringify(object))
+  } else {
+    return null
+  }
 }

@@ -2,6 +2,7 @@ var Chunk = require('soundbank-chunk')
 var Soundbank = require('soundbank')
 var DittyTrigger = require('ditty-trigger')
 var Launchpad = require('loop-launchpad')
+var Recorder = require('loop-recorder')
 
 var scheduler = Bopper(audioContext)
 var soundbank = Soundbank(audioContext)

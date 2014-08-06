@@ -4,14 +4,20 @@
   "description": "A group of triggerable sound descriptors to be positioned on a loop-grid and played with soundbank.",
   "main": "index.js",
   "dependencies": {
-    "array-union": "~0.1.0",
-    "observ": "~0.2.0",
-    "observ-array": "~1.2.0",
-    "observ-struct": "~5.0.1"
+    "array-grid": "^1.1.1",
+    "array-union": "^0.1.0",
+    "observ": "^0.2.0",
+    "observ-array": "^1.2.0",
+    "observ-struct": "^5.0.1",
+    "observ-varhash": "^0.2.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "ditty": "^2.3.0",
+    "loop-grid": "^1.1.0",
+    "tape": "^2.14.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape test/*.js"
   },
   "repository": {
     "type": "git",
