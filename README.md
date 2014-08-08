@@ -68,6 +68,10 @@ launchpad.add(chunk, 0, 0) // place starting at top-left corner
 
 Get a plain object (JSON) description of this chunk that can be persisted to disk, and restored using the Chunk constructor.
 
+### chunk.update(slotDescriptor)
+
+Works like [`soundbank.update`](https://github.com/mmckegg/soundbank#soundbankupdatedescriptor), except namespaced using `getGlobalId`. Updates matching id in `chunk.slots`.
+
 ## Observable Properties
 
 ### `chunk.title` (Observ)
@@ -76,7 +80,7 @@ A display title for this chunk.
 
 ### `chunk.slots` ([ObservArray](https://github.com/raynos/observ-array))
 
-The soundbank slot descriptors used by this chunk. Update sounds by modifying this array.
+The soundbank slot descriptors used by this chunk. Update sounds by modifying this array or using `chunk.update`.
 
 ### `chunk.sounds` (ObservArray)
 

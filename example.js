@@ -38,8 +38,8 @@ var drums = getChunk({
   name: 'Drums',
   slots: [
     {id: 'kick', sources: [{node: 'sample', 'url': '3423523412.wav'}]},
-    {id: 'snare', sources: [{node: 'sample', 'url': '342353256.wav'}]}
-    {id: 'hihat', sources: [{node: 'sample', 'url': '342361242.wav'}]}
+    {id: 'snare', sources: [{node: 'sample', 'url': '342353256.wav'}]},
+    {id: 'hihat', sources: [{node: 'sample', 'url': '342361242.wav'}]},
     {id: 'open-hihat', sources: [{node: 'sample', 'url': '23523421.wav'}]},
     {id: 'bus'},
     {id: 'sidechained' }

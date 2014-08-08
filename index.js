@@ -116,6 +116,19 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
     }
   }
 
+  self.update = function(descriptor){
+    if (!self.slots.some(function(slot, i){
+      var value = (typeof slot === 'function') ? slot() : slot
+      if (value && value.id === descriptor.id){
+        self.slots.splice(i, 1, descriptor)
+        return true
+      }
+    })){
+      console.log('adding', descriptor)
+      self.slots.push(descriptor)
+    }
+  }
+
   self.destroy = function(){
     releases.forEach(invoke)
     releases = []
