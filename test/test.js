@@ -21,17 +21,17 @@ test(function(t){
   })
 
   t.same(soundbank.getDescriptors(), [
-    {id: 'drums/kick', sources: [{node: 'sample', url: 'kick.wav'}], output: 'post'},
-    {id: 'drums/snare', sources: [{node: 'sample', url: 'snare.wav'}], output: 'post'},
-    {id: 'drums/hihat', sources: [{node: 'sample', url: 'hihat.wav'}], output: 'post'},
-    {id: 'drums/openhat', sources: [{node: 'sample', url: 'openhat.wav'}], output: 'post'},
-    {id: 'drums/post', processors: [{node: 'overdrive'}]}
+    {id: 'drums#kick', sources: [{node: 'sample', url: 'kick.wav'}], output: 'drums#post'},
+    {id: 'drums#snare', sources: [{node: 'sample', url: 'snare.wav'}], output: 'drums#post'},
+    {id: 'drums#hihat', sources: [{node: 'sample', url: 'hihat.wav'}], output: 'drums#post'},
+    {id: 'drums#openhat', sources: [{node: 'sample', url: 'openhat.wav'}], output: 'drums#post'},
+    {id: 'drums#post', processors: [{node: 'overdrive'}]}
   ])
 
   // update existing slot
   var snare = drums.slots.get(1)
   snare.set({id: 'snare', sources: [{node: 'sample', url: 'snare2.wav'}], output: 'post'})
-  t.same(soundbank.getDescriptor('drums/snare'), {id: 'drums/snare', sources: [{node: 'sample', url: 'snare2.wav'}], output: 'post'})
+  t.same(soundbank.getDescriptor('drums#snare'), {id: 'drums#snare', sources: [{node: 'sample', url: 'snare2.wav'}], output: 'drums#post'})
 
   t.same(drums.getDescriptor(), { 
     id: 'drums',
@@ -51,13 +51,13 @@ test(function(t){
   })
 
   var grid = drums.grid()
-  t.equal(grid.get(1, 0), 'drums/snare')
-  t.equal(grid.get(0, 1), 'drums/hihat')
-  t.equal(grid.get(1, 1), 'drums/openhat')
+  t.equal(grid.get(1, 0), 'drums#snare')
+  t.equal(grid.get(0, 1), 'drums#hihat')
+  t.equal(grid.get(1, 1), 'drums#openhat')
 
   // test routing
   drums.routes.put('post', 'master')
-  t.same(soundbank.getDescriptor('drums/post').output, 'master')
+  t.same(soundbank.getDescriptor('drums#post').output, 'master')
 
   drums.destroy()
   t.same(soundbank.getDescriptors(), [])
@@ -94,10 +94,10 @@ test('with loop-grid', function(t){
   loopGrid.forceRefresh()
 
   var grid = loopGrid.grid()
-  t.equal(grid.get(1,2), 'drums/kick')
-  t.equal(grid.get(2,2), 'drums/snare')
-  t.equal(grid.get(1,3), 'drums/hihat')
-  t.equal(grid.get(2,3), 'drums/openhat')
+  t.equal(grid.get(1,2), 'drums#kick')
+  t.equal(grid.get(2,2), 'drums#snare')
+  t.equal(grid.get(1,3), 'drums#hihat')
+  t.equal(grid.get(2,3), 'drums#openhat')
 
   t.same(loopGrid.chunkIds(), ['drums'])
 

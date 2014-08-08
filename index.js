@@ -8,7 +8,7 @@ var union = require('array-union')
 
 module.exports = function Chunk(soundbank, descriptor, getUniqueId){
   getUniqueId = getUniqueId || function(d){
-    return self.id() + '/' + d.id
+    return self.id() + '#' + d.id
   }
 
   descriptor.shape = descriptor.shape || [8, 1]
