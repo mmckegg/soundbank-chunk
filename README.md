@@ -17,9 +17,9 @@ $ npm install loop-grid
 var Chunk = require('soundbank-chunk')
 ```
 
-### `Chunk(soundbank, chunkDescriptor[, getUniqueId])`
+### `Chunk(soundbank, chunkDescriptor[, getGlobalId])`
 
-Specify the instance of [`soundbank`](https://github.com/mmckegg/soundbank) you wish to wrap. This chunk will be immediately added to the soundbank, with the IDs by default name spaced with the chunk id, or the result of `getUniqueId(slotDescriptor)` if specified.
+Specify the instance of [`soundbank`](https://github.com/mmckegg/soundbank) you wish to wrap. This chunk will be immediately added to the soundbank, with the IDs by default namespaced with the chunk id, or the result of `getGlobalId(chunkId, slotId)` if specified.
 
 Returns an observable/bindable chunk.
 
