@@ -5,7 +5,7 @@ A group of triggerable [sound descriptors](https://github.com/mmckegg/audio-slot
 
 Implements [observ](https://github.com/raynos/observ) for easy data-binding to your views.
 
-## Install via [npm](https://npmjs.org/packages/loop-grid)
+## Install via [npm](https://npmjs.org/package/loop-grid)
 
 ```bash
 $ npm install loop-grid
