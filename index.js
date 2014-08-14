@@ -124,7 +124,6 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
         return true
       }
     })){
-      console.log('adding', descriptor)
       self.slots.push(descriptor)
     }
   }
