@@ -120,11 +120,16 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
     if (!self.slots.some(function(slot, i){
       var value = (typeof slot === 'function') ? slot() : slot
       if (value && value.id === descriptor.id){
-        self.slots.splice(i, 1, descriptor)
+        if (typeof slot === 'function'){
+          slot.set(descriptor)
+        } else {
+          // ensure is an observ
+          self.slots.splice(i, 1, Observ(descriptor))
+        }
         return true
       }
     })){
-      self.slots.push(descriptor)
+      self.slots.push(Observ(descriptor))
     }
   }
 
