@@ -28,7 +28,11 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
   })
 
   getGlobalId = getGlobalId || function(chunkId, localId){
-    return chunkId + '#' + localId
+    if (localId === 'meddler'){
+      return 'meddler'
+    } else {
+      return chunkId + '#' + localId
+    }
   }
 
   // watch the slots, assign global ids, update soundbank
