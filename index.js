@@ -24,6 +24,7 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
     outputs: ObservArray(descriptor.outputs || []),
     inputs: ObservArray(descriptor.inputs || []),
     routes: ObservVarhash({}),
+    flags: ObservVarhash({}),
     grid: Observ() // auto generated
   })
 
@@ -38,14 +39,17 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
   // watch the slots, assign global ids, update soundbank
   var currentSlotValues = []
   releases.push(self.slots(function(array){
-    var diff = array._diff
+    var diffs = array._diff
     var updateIds = []
     var updateItems = array
     var oldItems = currentSlotValues
 
-    if (diff){
-      updateItems = diff.slice(2)
-      oldItems = currentSlotValues.slice(diff[0], diff[0]+diff[1])
+    if (diffs){
+      oldItems = []
+      diffs.forEach(function(diff){
+        updateItems = diff.slice(2)
+        Array.prototype.push.apply(oldItems, currentSlotValues.slice(diff[0], diff[0]+diff[1]))
+      })
     }
 
     updateItems.forEach(function(element){
@@ -66,6 +70,8 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
         newDescriptor.output = currentRoutes[element.id]
       }
 
+      self.flags.put(globalId, newDescriptor.flags || [])
+
       soundbank.update(newDescriptor)
       updateIds.push(globalId)
     })
@@ -74,6 +80,7 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
       var globalId = getGlobalId(self.id(), element.id)
       if (globalId != null && !~updateIds.indexOf(globalId)){
         soundbank.remove(globalId)
+        self.flags.delete(globalId)
       }
     })
 
