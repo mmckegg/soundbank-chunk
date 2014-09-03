@@ -54,17 +54,8 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
 
     updateItems.forEach(function(element){
       // map to global and update soundbank
-      var globalId = getGlobalId(self.id(), element.id)
-      newDescriptor = obtain(element)
-      newDescriptor.id = globalId
-
-      if (newDescriptor.output){
-        newDescriptor.output = getGlobalId(self.id(), newDescriptor.output)
-      }
-
-      if (newDescriptor.from){
-        newDescriptor.from = getGlobalId(self.id(), newDescriptor.from)
-      }
+      var globalId = lookupGlobal(element.id)
+      newDescriptor = obtainWithIds(element, lookupGlobal)
 
       if (currentRoutes[element.id]){
         newDescriptor.output = currentRoutes[element.id]
@@ -170,6 +161,20 @@ module.exports = function Chunk(soundbank, descriptor, getGlobalId){
     var result = ArrayGrid(self.sounds().map(lookupGlobal), self.shape(), self.stride())
     self.grid.set(result)
   }
+}
+
+function obtainWithIds(object, lookupGlobal){
+  object = object || {}
+  return JSON.parse(JSON.stringify(object, function(key, value){
+    if (key === 'id' || key === 'from' || key === 'output'){
+      if (Array.isArray(value)){
+        return value.map(lookupGlobal)
+      } else if ((typeof value === 'string' && value) || typeof value === 'number'){
+        return lookupGlobal(value)
+      }
+    }
+    return value
+  }))
 }
 
 function obtain(object){
