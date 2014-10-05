@@ -17,9 +17,11 @@ $ npm install loop-grid
 var Chunk = require('soundbank-chunk')
 ```
 
-### `Chunk(soundbank, chunkDescriptor[, getGlobalId])`
+### `var chunk = Chunk(opts)`
 
-Specify the instance of [`soundbank`](https://github.com/mmckegg/soundbank) you wish to wrap. This chunk will be immediately added to the soundbank, with the IDs by default namespaced with the chunk id, or the result of `getGlobalId(chunkId, slotId)` if specified.
+**`opts`**
+  - `soundbank`: (required) Specify the instance of [`soundbank`](https://github.com/mmckegg/soundbank) you wish to wrap. This chunk will be immediately added to the soundbank, with the IDs by default namespaced with the chunk id.
+  - `getGlobalId`: Override the internal id resolver with `function(chunkId, soundId)`.
 
 Returns an observable/bindable chunk.
 
@@ -64,13 +66,23 @@ var launchpad = require('loop-launchpad')(
 launchpad.add(chunk, 0, 0) // place starting at top-left corner
 ```
 
-### chunk.getDescriptor()
+### `chunk.set(descriptor)`
 
-Get a plain object (JSON) description of this chunk that can be persisted to disk, and restored using the Chunk constructor.
+Update all properties to reflect the new descriptor.
 
-### chunk.update(slotDescriptor)
+### `chunk()`
 
-Works like [`soundbank.update`](https://github.com/mmckegg/soundbank#soundbankupdatedescriptor), except namespaced using `getGlobalId`. Updates matching id in `chunk.slots`.
+Returns the current descriptor value as `set`.
+
+### chunk(function callback(descriptor){ ... })
+
+The `callback` is called with the new `descriptor` value on every change.
+
+### `chunk.grid` Observ(ArrayGrid)
+
+Get the resolved trigger IDs mapped to an ArrayGrid using `shape` and `stride` values.
+
+Returns an ArrayGrid wrapped by an Observ instance that notifies on change.
 
 ## Observable Properties
 
@@ -80,9 +92,9 @@ A display title for this chunk.
 
 ### `chunk.slots` ([ObservArray](https://github.com/raynos/observ-array))
 
-The soundbank slot descriptors used by this chunk. Update sounds by modifying this array or using `chunk.update`.
+The soundbank slot descriptors used by this chunk. Update sounds by modifying this array.
 
-### `chunk.sounds` (ObservArray)
+### `chunk.triggers` (ObservArray)
 
 The slot ids to include on the grid. They will be shaped by `chunk.shape` and `chunk.stride`.
 
@@ -94,10 +106,10 @@ The slot ids to include on the grid. They will be shaped by `chunk.shape` and `c
 
 Route the output from slots in this chunk to IDs in other chunks.
 
-### `chunk.inputs` (ObservArray)
+### `chunk.inputs` (Observ)
 
 List of slot ids to accept input routing from chunks.
 
-### `chunk.outputs` (ObservArray)
+### `chunk.outputs` (Observ)
 
 List of slot ids to suggest output routing to other chunks.

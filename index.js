@@ -1,166 +1,99 @@
-var ArrayGrid = require('array-grid')
-var ObservArray = require('observ-array')
+var Observ = require('observ')
 var ObservStuct = require('observ-struct')
 var ObservVarhash = require('observ-varhash')
-var Observ = require('observ')
+var ArrayGrid = require('array-grid')
+var computedNextTick = require('./lib/computed-next-tick')
+var computed = require('observ/computed')
 
-var union = require('array-union')
+module.exports = Chunk
 
-module.exports = function Chunk(soundbank, descriptor, getGlobalId){
+function Chunk(opts){
+  // opts: soundbank (required), getGlobalId 
 
-  descriptor.shape = descriptor.shape || [8, 1]
-  descriptor.stride = descriptor.stride || [1, descriptor.shape[0]]
+  var obs = ObservStuct({
+
+    id: Observ(),
+    title: Observ(),
+    slots: Observ([]),
+    
+    shape: Observ(),
+    stride: Observ(),
+    triggers: Observ([]),
+
+    inputs: Observ([]),
+    outputs: Observ([]),
+    routes: ObservVarhash({}),
+    flags: ObservVarhash({})
+  })
 
   var releases = []
-  var currentRoutes = {}
 
-  var self = ObservStuct({
-    id: Observ(descriptor.id),
-    title: Observ(descriptor.title),
-    slots: ObservArray([]),
-    sounds: ObservArray(descriptor.sounds || []),
-    shape: Observ(descriptor.shape),
-    stride: Observ(descriptor.stride),
-    outputs: ObservArray(descriptor.outputs || []),
-    inputs: ObservArray(descriptor.inputs || []),
-    routes: ObservVarhash({}),
-    flags: ObservVarhash({}),
-    grid: Observ() // auto generated
+  var getGlobalId = opts.getGlobalId || getGlobalIdFallback
+  var resolvedIds = computed([obs.id, obs.triggers], function(id, triggers){
+    if (!Array.isArray(triggers)) triggers = []
+    return triggers.map(lookupGlobal)
   })
 
-  getGlobalId = getGlobalId || function(chunkId, localId){
-    if (localId === 'meddler'){
-      return 'meddler'
-    } else {
-      return chunkId + '#' + localId
-    }
-  }
+  var resolvedSlots = computedNextTick([obs.id, obs.slots, obs.routes], function(id, slots, routes){
 
-  // watch the slots, assign global ids, update soundbank
-  var currentSlotValues = []
-  releases.push(self.slots(function(array){
-    var diffs = array._diff
-    var updateIds = []
-    var updateItems = array
-    var oldItems = currentSlotValues
+    if (!routes) routes = {}
+    if (!Array.isArray(slots)) slots = []
 
-    if (diffs){
-      oldItems = []
-      diffs.forEach(function(diff){
-        updateItems = diff.slice(2)
-        Array.prototype.push.apply(oldItems, currentSlotValues.slice(diff[0], diff[0]+diff[1]))
-      })
-    }
-
-    updateItems.forEach(function(element){
-      // map to global and update soundbank
-      var globalId = lookupGlobal(element.id)
-      newDescriptor = obtainWithIds(element, lookupGlobal)
-
-      if (currentRoutes[element.id]){
-        newDescriptor.output = currentRoutes[element.id]
+    var result = []
+    for (var i=0;i<slots.length;i++){
+      var slot = slots[i]
+      result[i] = obtainWithIds(slot, lookupGlobal)
+      if (routes[slot.id]){
+        result[i].output = routes[slot.id]
       }
+      result[i].output
+    }
+    return result
+  })
 
-      self.flags.put(globalId, newDescriptor.flags || [])
-
-      soundbank.update(newDescriptor)
-      updateIds.push(globalId)
+  var usedSlots = {}
+  releases.push(resolvedSlots(function(slots){
+    slots.forEach(function(descriptor){
+      // naive and slow implementation, but soundbank performs deepEqual checks on update
+      // hoepfully this will make things OK :/
+      usedSlots[descriptor.id] = true
+      opts.soundbank.update(descriptor)
     })
 
-    oldItems.forEach(function(element){
-      var globalId = getGlobalId(self.id(), element.id)
-      if (globalId != null && !~updateIds.indexOf(globalId)){
-        soundbank.remove(globalId)
-        self.flags.delete(globalId)
+    // clean up unused slots
+    for (var id in usedSlots){
+      if (usedSlots[id] === false){
+        ;delete usedSlots[id]
+        opts.soundbank.remove(id)
+      } else {
+        usedSlots[id] = false
       }
-    })
+    }
 
-    currentSlotValues = array
   }))
 
-  if (Array.isArray(descriptor.slots)){
-    descriptor.slots.forEach(function(d){
-      self.slots.push(Observ(d))
-    })
+  obs.grid = computedNextTick([resolvedIds, obs.shape, obs.stride], ArrayGrid)
+
+  obs.forceUpdate = function(){
+    resolvedSlots.refresh()
   }
 
-  self.shape(refreshGrid)
-  self.stride(refreshGrid)
-  self.sounds(refreshGrid)
-
-  // dynamic routing
-  self.routes(function(value){
-    var keys = union(Object.keys(value), Object.keys(currentRoutes))
-    keys.forEach(function(key){
-      if (currentRoutes[key] !== value[key]){
-        var current = obtain(soundbank.getDescriptor(getGlobalId(self.id(), key)))
-        if (current){
-          current.output = value[key]
-          soundbank.update(current)
-        }
-      }
-    })
-    currentRoutes = value
-  })
-  self.routes.set(descriptor.routes || {})
-
-  self.getDescriptor = function(){
-    return {
-      id: self.id(),
-      title: self.title(),
-      slots: self.slots(),
-      sounds: self.sounds(),
-      shape: self.shape(),
-      stride: self.stride(),
-      inputs: self.inputs(),
-      outputs: self.outputs(),
-      routes: self.routes()
-    }
-  }
-
-  self.update = function(descriptor){
-    if (!self.slots.some(function(slot, i){
-      var value = (typeof slot === 'function') ? slot() : slot
-      if (value && value.id === descriptor.id){
-        if (typeof slot === 'function'){
-          slot.set(descriptor)
-        } else {
-          // ensure is an observ
-          self.slots.splice(i, 1, Observ(descriptor))
-        }
-        return true
-      }
-    })){
-      self.slots.push(Observ(descriptor))
-    }
-  }
-
-  self.destroy = function(){
+  obs.destroy = function(){
     releases.forEach(invoke)
-    releases = []
-    currentSlotValues.forEach(function(element){
-      var globalId = getGlobalId(self.id(), element.id)
-      if (globalId != null){
-        soundbank.remove(globalId)
-      }
+    Object.keys(usedSlots).forEach(function(id){
+      opts.soundbank.remove(id)
+      ;delete usedSlots[id]
     })
-    currentSlotValues = []
   }
 
-  refreshGrid()
-  return self
+  return obs
 
 
-  ///
-
+  // scoped
   function lookupGlobal(localId){
-    return getGlobalId(self.id(), localId)
+    return getGlobalId(obs.id(), localId)
   }
 
-  function refreshGrid(){
-    var result = ArrayGrid(self.sounds().map(lookupGlobal), self.shape(), self.stride())
-    self.grid.set(result)
-  }
 }
 
 function obtainWithIds(object, lookupGlobal){
@@ -177,17 +110,14 @@ function obtainWithIds(object, lookupGlobal){
   }))
 }
 
-function obtain(object){
-  if (object != null){
-    //if (typeof object === 'function'){
-    //  object = object()
-    //}
-    return JSON.parse(JSON.stringify(object))
-  } else {
-    return null
-  }
+function invoke(f){
+  return f()
 }
 
-function invoke(func){
-  return func()
+function getGlobalIdFallback(chunkId, localId){
+    if (localId === 'meddler'){ // only one meddler at this stage :(
+      return 'meddler'
+    } else {
+      return chunkId + '#' + localId
+    }
 }
