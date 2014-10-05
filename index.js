@@ -35,7 +35,6 @@ function Chunk(opts){
   })
 
   var resolvedSlots = computedNextTick([obs.id, obs.slots, obs.routes], function(id, slots, routes){
-
     if (!routes) routes = {}
     if (!Array.isArray(slots)) slots = []
 
@@ -53,23 +52,24 @@ function Chunk(opts){
 
   var usedSlots = {}
   releases.push(resolvedSlots(function(slots){
-    slots.forEach(function(descriptor){
-      // naive and slow implementation, but soundbank performs deepEqual checks on update
-      // hoepfully this will make things OK :/
-      usedSlots[descriptor.id] = true
-      opts.soundbank.update(descriptor)
-    })
+    if (obs.id()){
+      slots.forEach(function(descriptor){
+        // naive and slow implementation, but soundbank performs deepEqual checks on update
+        // hoepfully this will make things OK :/
+        usedSlots[descriptor.id] = true
+        opts.soundbank.update(descriptor)
+      })
 
-    // clean up unused slots
-    for (var id in usedSlots){
-      if (usedSlots[id] === false){
-        ;delete usedSlots[id]
-        opts.soundbank.remove(id)
-      } else {
-        usedSlots[id] = false
+      // clean up unused slots
+      for (var id in usedSlots){
+        if (usedSlots[id] === false){
+          ;delete usedSlots[id]
+          opts.soundbank.remove(id)
+        } else {
+          usedSlots[id] = false
+        }
       }
     }
-
   }))
 
   obs.grid = computedNextTick([resolvedIds, obs.shape, obs.stride], ArrayGrid)
