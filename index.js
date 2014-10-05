@@ -72,7 +72,12 @@ function Chunk(opts){
     }
   }))
 
-  obs.grid = computedNextTick([resolvedIds, obs.shape, obs.stride], ArrayGrid)
+  obs.grid = computed([resolvedIds, obs.shape, obs.stride], ArrayGrid)
+  obs.controllerContext = ObservStuct({
+    id: obs.id,
+    grid: obs.grid,
+    flags: obs.flags
+  })
 
   obs.forceUpdate = function(){
     resolvedSlots.refresh()
