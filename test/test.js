@@ -2,8 +2,9 @@ var test = require('tape')
 var Chunk = require('../')
 var LoopGrid = require('loop-grid')
 var Ditty = require('ditty')
+var FakeSoundbank = require('./lib/fake-soundbank.js')
 
-test(function(t){
+test('test chunk', function(t){
   var soundbank = FakeSoundbank()
   var context = { soundbank: soundbank }
   var drums = Chunk(context)
@@ -55,7 +56,6 @@ test(function(t){
   //  routes: {} 
   //})
 
-  drums.grid.refresh() // fake nextTick
   var grid = drums.grid()
 
   t.equal(grid.get(0, 1), 'drums#snare')
@@ -126,22 +126,3 @@ test(function(t){
 //  t.end()
 //})
 
-function FakeSoundbank(){
-  var descriptors = {}
-  return {
-    getDescriptor: function(id){
-      return descriptors[id] || {id: String(id)}
-    },
-    getDescriptors: function(id){
-      return Object.keys(descriptors).map(function(id){
-        return descriptors[id]
-      })
-    },
-    update: function(descriptor){
-      descriptors[descriptor.id] = descriptor
-    },
-    remove: function(id){
-      ;delete descriptors[id]
-    }
-  }
-}

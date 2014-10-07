@@ -8,15 +8,19 @@ var computed = require('observ/computed')
 var getGlobalIdFallback = require('./lib/get-global-id.js')
 var obtainWithIds = require('./lib/obtain-with-ids.js')
 
-module.exports = Chunk
+module.exports = RangeChunk
 
-function Chunk(opts){
+function RangeChunk(opts){
   // opts: soundbank (required), getGlobalId 
 
   var obs = ObservStuct({
 
     id: Observ(),
     title: Observ(),
+    scale: Observ(),
+    offset: Observ(),
+
+    triggerSlot: Observ(),
     slots: Observ([]),
     
     shape: Observ(),
@@ -32,14 +36,24 @@ function Chunk(opts){
   var releases = []
 
   var getGlobalId = opts.getGlobalId || getGlobalIdFallback
-  var resolvedIds = computed([obs.id, obs.triggers], function(id, triggers){
-    if (!Array.isArray(triggers)) triggers = []
-    return triggers.map(lookupGlobal)
+  var resolvedIds = computed([obs.id, obs.shape], function(id, shape){
+    var result = []
+    shape = shape || [1, 1]
+    var length = (shape[0] || 1) * (shape[1] || 1)
+    for (var i=0;i<length;i++){
+      result.push(lookupGlobal(String(i)))
+    }
+    return result
   })
 
-  var resolvedSlots = computedNextTick([obs.id, obs.slots, obs.routes], function(id, slots, routes){
+  var resolvedSlots = computedNextTick([
+    obs.id, obs.slots, obs.routes, obs.scale, obs.offset, obs.triggerSlot, obs.shape
+  ], function(id, slots, routes, scale, offset, triggerSlot, shape){
     if (!routes) routes = {}
     if (!Array.isArray(slots)) slots = []
+
+    shape = shape || [1, 1]
+    offset = offset || 0
 
     var result = []
     for (var i=0;i<slots.length;i++){
@@ -50,6 +64,18 @@ function Chunk(opts){
       }
       result[i].output
     }
+
+    var length = (shape[0] || 1) * (shape[1] || 1)
+    for (var i=0;i<length;i++){
+      var slot = obtainWithIds(triggerSlot, lookupGlobal)
+      slot.id = lookupGlobal(String(i))
+      if (routes[String(i)]){
+        slot.output = routes[String(i)]
+      }
+      slot.offset = i + offset
+      result.push(slot)
+    }
+
     return result
   })
 
