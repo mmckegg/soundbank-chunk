@@ -7,6 +7,7 @@ var computed = require('observ/computed')
 
 var getGlobalIdFallback = require('./lib/get-global-id.js')
 var obtainWithIds = require('./lib/obtain-with-ids.js')
+var randomColor = require('./lib/random-color.js')
 
 module.exports = Chunk
 
@@ -107,7 +108,8 @@ function Chunk(opts){
   obs.controllerContext = ObservStuct({
     id: obs.id,
     grid: obs.grid,
-    flags: obs.flags
+    flags: obs.flags,
+    color: [Math.floor(Math.random()*256),Math.floor(Math.random()*256),Math.floor(Math.random()*256)]
   })
 
   obs.forceUpdate = function(){
