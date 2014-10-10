@@ -31,7 +31,9 @@ function RangeChunk(opts){
     inputs: Observ([]),
     outputs: Observ([]),
     routes: ObservVarhash({}),
-    flags: ObservVarhash({})
+    flags: ObservVarhash({}),
+
+    color: Observ()
   })
 
   var releases = []
@@ -103,11 +105,13 @@ function RangeChunk(opts){
   }))
 
   obs.grid = computed([resolvedIds, obs.shape, obs.stride], ArrayGrid)
-  obs.controllerContext = ObservStuct({
-    id: obs.id,
-    grid: obs.grid,
-    flags: obs.flags,
-    color: randomColor([255,255,255])
+  obs.controllerContext = computedNextTick([obs.id, obs.grid, obs.flags, obs.color], function(id, grid, flags, color){
+    return {
+      id: id,
+      grid: grid,
+      flags: flags,
+      color: color || randomColor([255,255,255])
+    }
   })
 
   obs.forceUpdate = function(){
