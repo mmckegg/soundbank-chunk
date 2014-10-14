@@ -21,7 +21,7 @@ function RangeChunk(opts){
     scale: Observ(),
     offset: Observ(),
 
-    triggerSlot: Observ(),
+    triggerSlots: Observ(),
     slots: Observ([]),
     
     shape: Observ(),
@@ -32,6 +32,8 @@ function RangeChunk(opts){
     outputs: Observ([]),
     routes: ObservVarhash({}),
     flags: ObservVarhash({}),
+
+    selectedSlotId: Observ(),
 
     color: Observ()
   })
@@ -50,10 +52,11 @@ function RangeChunk(opts){
   })
 
   var resolvedSlots = computedNextTick([
-    obs.id, obs.slots, obs.routes, obs.scale, obs.offset, obs.triggerSlot, obs.shape
-  ], function(id, slots, routes, scale, offset, triggerSlot, shape){
+    obs.id, obs.slots, obs.routes, obs.scale, obs.offset, obs.triggerSlots, obs.shape
+  ], function(id, slots, routes, scale, offset, triggerSlots, shape){
     if (!routes) routes = {}
     if (!Array.isArray(slots)) slots = []
+    if (!Array.isArray(triggerSlots)) triggerSlots = []
 
     shape = shape || [1, 1]
     offset = offset || 0
@@ -70,11 +73,9 @@ function RangeChunk(opts){
 
     var length = (shape[0] || 1) * (shape[1] || 1)
     for (var i=0;i<length;i++){
-      var slot = obtainWithIds(triggerSlot, lookupGlobal)
+      var slot = obtainWithIds(triggerSlots[0], lookupGlobal)
       slot.id = lookupGlobal(String(i))
-      if (routes[String(i)]){
-        slot.output = routes[String(i)]
-      }
+      slot.output = routes[String(i)] || lookupGlobal('output')
       slot.offset = i + offset
       result.push(slot)
     }
@@ -105,11 +106,12 @@ function RangeChunk(opts){
   }))
 
   obs.grid = computed([resolvedIds, obs.shape, obs.stride], ArrayGrid)
-  obs.controllerContext = computedNextTick([obs.id, obs.grid, obs.flags, obs.color], function(id, grid, flags, color){
+  obs.controllerContext = computedNextTick([obs.id, obs.grid, obs.flags, obs.color, obs.selectedSlotId], function(id, grid, flags, color, selectedSlotId){
     return {
       id: id,
       grid: grid,
       flags: flags,
+      selectedSlotId: selectedSlotId,
       color: color || randomColor([255,255,255])
     }
   })

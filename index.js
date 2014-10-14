@@ -33,24 +33,26 @@ function Chunk(opts){
     routes: ObservVarhash({}),
     flags: ObservVarhash({}),
 
+    selectedSlotId: Observ(),
+
     color: Observ()
   })
 
   var releases = []
 
   var getGlobalId = opts.getGlobalId || getGlobalIdFallback
-  var resolvedIds = computed([obs.id, obs.triggers, obs.triggerSlots], function(id, triggers, triggerSlots){
-    if (Array.isArray(triggerSlots) && triggerSlots.length){
-      console.log('SLOTSZ')
-      var result = []
-      for (var i=0;i<triggerSlots.length;i++){
-        result.push(lookupGlobal(String(i)))
-      }
-      return result
-    } else {
-      console.log('SLOTSES')
+  var resolvedIds = computed([obs.id, obs.triggers, obs.shape], function(id, triggers, shape){
+    if (Array.isArray(triggers)){
       if (!Array.isArray(triggers)) triggers = []
       return triggers.map(lookupGlobal)
+    } else {
+      var shape = shape || [1,1]
+      var result = []
+      var length = shape[0] * shape[1]
+      for (var i=0;i<length;i++){
+        result[i] = lookupGlobal(String(i))
+      }
+      return result
     }
   })
 
@@ -72,12 +74,12 @@ function Chunk(opts){
     if (Array.isArray(triggerSlots)){
       for (var i=0;i<triggerSlots.length;i++){
         var id = String(i)
-        var slot = obtainWithIds(triggerSlots[i], lookupGlobal) 
-        slot.id = lookupGlobal(id)
-        if (routes[id]){
-          result[i].output = routes[id]
+        if (triggerSlots[i]){
+          var slot = obtainWithIds(triggerSlots[i], lookupGlobal) 
+          slot.id = lookupGlobal(id)
+          slot.output = routes[id] || lookupGlobal('output')
+          result.push(slot)
         }
-        result.push(slot)
       }
     }
 
@@ -107,11 +109,12 @@ function Chunk(opts){
   }))
 
   obs.grid = computed([resolvedIds, obs.shape, obs.stride], ArrayGrid)
-  obs.controllerContext = computedNextTick([obs.id, obs.grid, obs.flags, obs.color], function(id, grid, flags, color){
+  obs.controllerContext = computedNextTick([obs.id, obs.grid, obs.flags, obs.color, obs.selectedSlotId], function(id, grid, flags, color, selectedSlotId){
     return {
       id: id,
       grid: grid,
       flags: flags,
+      selectedSlotId: selectedSlotId,
       color: color || randomColor([255,255,255])
     }
   })
