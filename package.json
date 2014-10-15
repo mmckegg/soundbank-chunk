@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "ditty": "^2.3.0",
-    "loop-grid": "^1.1.0",
+    "loop-grid": "^2.0.0",
     "tape": "^2.14.0"
   },
   "scripts": {
