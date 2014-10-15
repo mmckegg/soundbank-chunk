@@ -113,7 +113,7 @@ function Chunk(opts){
     return {
       id: id,
       grid: grid,
-      flags: flags,
+      flags: lookupKeys(flags),
       selectedSlotId: selectedSlotId,
       color: color || randomColor([255,255,255])
     }
@@ -137,6 +137,18 @@ function Chunk(opts){
   // scoped
   function lookupGlobal(localId){
     return getGlobalId(obs.id(), localId)
+  }
+
+  function lookupKeys(object){
+    if (object instanceof Object){
+      var result = {}
+      for (var key in object){
+        if (key in object){
+          result[lookupGlobal(key)] = object[key]
+        }
+      }
+      return result
+    }
   }
 
 }
