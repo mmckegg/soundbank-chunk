@@ -1,6 +1,6 @@
 {
   "name": "soundbank-chunk",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A group of triggerable sound descriptors to be positioned on a loop-grid and played with soundbank.",
   "main": "index.js",
   "dependencies": {
