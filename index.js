@@ -77,7 +77,7 @@ function Chunk(opts){
         if (triggerSlots[i]){
           var slot = obtainWithIds(triggerSlots[i], lookupGlobal) 
           slot.id = lookupGlobal(id)
-          slot.output = routes[id] || lookupGlobal('output')
+          slot.output = slot.output || routes[id] || lookupGlobal('output')
           result.push(slot)
         }
       }
@@ -108,11 +108,22 @@ function Chunk(opts){
     }
   }))
 
+  obs.usedSlots = computed([obs.triggerSlots], function(triggerSlots){
+    var result = []
+    triggerSlots&&triggerSlots.forEach(function(slot, i){
+      if (slot){
+        result.push(i)
+      }
+    })
+    return result
+  })
+
   obs.grid = computed([resolvedIds, obs.shape, obs.stride], ArrayGrid)
-  obs.controllerContext = computedNextTick([obs.id, obs.grid, obs.flags, obs.color, obs.selectedSlotId], function(id, grid, flags, color, selectedSlotId){
+  obs.controllerContext = computedNextTick([obs.id, obs.grid, obs.flags, obs.color, obs.selectedSlotId, obs.usedSlots], function(id, grid, flags, color, selectedSlotId, usedSlots){
     return {
       id: id,
       grid: grid,
+      usedSlots: usedSlots,
       flags: lookupKeys(flags),
       selectedSlotId: selectedSlotId,
       color: color || randomColor([255,255,255])
