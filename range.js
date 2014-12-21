@@ -34,6 +34,7 @@ function RangeChunk(opts){
     flags: ObservVarhash({}),
 
     selectedSlotId: Observ(),
+    volume: Observ(1),
 
     color: Observ()
   })
@@ -52,8 +53,8 @@ function RangeChunk(opts){
   })
 
   var resolvedSlots = computedNextTick([
-    obs.id, obs.slots, obs.routes, obs.scale, obs.offset, obs.triggerSlots, obs.shape
-  ], function(id, slots, routes, scale, offset, triggerSlots, shape){
+    obs.id, obs.volume, obs.slots, obs.routes, obs.scale, obs.offset, obs.triggerSlots, obs.shape
+  ], function(id, volume, slots, routes, scale, offset, triggerSlots, shape){
     if (!routes) routes = {}
     if (!Array.isArray(slots)) slots = []
     if (!Array.isArray(triggerSlots)) triggerSlots = []
@@ -64,11 +65,13 @@ function RangeChunk(opts){
     var result = []
     for (var i=0;i<slots.length;i++){
       var slot = slots[i]
-      result[i] = obtainWithIds(slot, lookupGlobal)
+      var instance = result[i] = obtainWithIds(slot, lookupGlobal)
       if (routes[slot.id]){
-        result[i].output = routes[slot.id]
+        instance.output = routes[slot.id]
       }
-      result[i].output
+      if (slot.id === 'output' && volume != null){
+        instance.volume = orOne(slot.volume) * orOne(volume)
+      }
     }
 
     var length = (shape[0] || 1) * (shape[1] || 1)
@@ -136,6 +139,14 @@ function RangeChunk(opts){
     return getGlobalId(obs.id(), localId)
   }
 
+}
+
+function orOne(number){
+  if (typeof number === 'number' && isFinite(number)){
+    return number
+  } else {
+    return 1
+  }
 }
 
 function invoke(f){

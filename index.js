@@ -34,6 +34,7 @@ function Chunk(opts){
     flags: ObservVarhash({}),
 
     selectedSlotId: Observ(),
+    volume: Observ(1),
 
     color: Observ()
   })
@@ -56,18 +57,21 @@ function Chunk(opts){
     }
   })
 
-  var resolvedSlots = computedNextTick([obs.id, obs.slots, obs.triggerSlots, obs.routes], function(id, slots, triggerSlots, routes){
+  var resolvedSlots = computedNextTick([obs.id, obs.volume, obs.slots, obs.triggerSlots, obs.routes], function(id, volume, slots, triggerSlots, routes){
     if (!routes) routes = {}
     var result = []
 
     if (Array.isArray(slots)){
       for (var i=0;i<slots.length;i++){
         var slot = slots[i]
-        result[i] = obtainWithIds(slot, lookupGlobal)
+        var instance = result[i] = obtainWithIds(slot, lookupGlobal)
         if (routes[slot.id]){
-          result[i].output = routes[slot.id]
+          instance.output = routes[slot.id]
         }
-        result[i].output
+
+        if (slot.id === 'output' && volume != null){
+          instance.volume = orOne(slot.volume) * orOne(volume)
+        }
       }
     }
 
@@ -166,5 +170,13 @@ function Chunk(opts){
 
 function invoke(f){
   return f()
+}
+
+function orOne(number){
+  if (typeof number === 'number' && isFinite(number)){
+    return number
+  } else {
+    return 1
+  }
 }
 
