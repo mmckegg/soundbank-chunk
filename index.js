@@ -36,6 +36,8 @@ function Chunk(opts){
     selectedSlotId: Observ(),
     volume: Observ(1),
 
+    chokeAll: Observ(),
+
     color: Observ()
   })
 
@@ -57,7 +59,7 @@ function Chunk(opts){
     }
   })
 
-  var resolvedSlots = computedNextTick([obs.id, obs.volume, obs.slots, obs.triggerSlots, obs.routes], function(id, volume, slots, triggerSlots, routes){
+  var resolvedSlots = computedNextTick([obs.id, obs.volume, obs.slots, obs.triggerSlots, obs.routes, obs.chokeAll], function(chunkId, volume, slots, triggerSlots, routes, chokeAll){
     if (!routes) routes = {}
     var result = []
 
@@ -82,6 +84,9 @@ function Chunk(opts){
           var slot = obtainWithIds(triggerSlots[i], lookupGlobal) 
           slot.id = lookupGlobal(id)
           slot.output = slot.output || routes[id] || lookupGlobal('output')
+          if (chokeAll){
+            slot.chokeGroup = chunkId + '#all'
+          }
           result.push(slot)
         }
       }
